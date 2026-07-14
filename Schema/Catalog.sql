@@ -7,12 +7,18 @@ BEGIN
 END
 GO
 
+IF NOT EXISTS (SELECT * FROM sys.schemas WHERE NAME = 'Translation')
+BEGIN
+  EXEC('CREATE SCHEMA Translation');
+END
+GO
+
 -- CREATE Catalog.Products
 CREATE TABLE [Olist].[Catalog].[Products] (
   [ProductID] VARCHAR(50) PRIMARY KEY
   ,[ProductCategoryName] VARCHAR(100)
-  ,[ProductNameLenght] INT
-  ,[ProductDescriptionLenght] INT
+  ,[ProductNameLength] INT
+  ,[ProductDescriptionLength] INT
   ,[ProductPhotosQty] INT
   ,[ProductWeightG] INT
   ,[ProductLengthCm] INT
@@ -46,8 +52,8 @@ INSERT INTO [Olist].[Catalog].[Products]
 (
   [ProductID]
   ,[ProductCategoryName]
-  ,[ProductNameLenght]
-  ,[ProductDescriptionLenght]
+  ,[ProductNameLength]
+  ,[ProductDescriptionLength]
   ,[ProductPhotosQty]
   ,[ProductWeightG]
   ,[ProductLengthCm]
@@ -70,3 +76,43 @@ DROP TABLE [Olist].[Catalog].[Staging_Products];
 GO
 
 -- DROP TABLE [Olist].[Catalog].[Products]
+
+-- CREATE Translation.ProductCategoryNameTranslations
+CREATE TABLE [Olist].[Catalog].[Translations] (
+  [ProductCategoryName] VARCHAR(100) PRIMARY KEY
+  ,[ProductCategoryNameEnglish] VARCHAR(100)
+);
+
+CREATE TABLE [Olist].[Catalog].[Staging_Translations] (
+  [product_category_name] VARCHAR(100)
+  ,[product_category_name_english] VARCHAR(100)
+);
+
+BULK INSERT [Olist].[Catalog].[Staging_Translations]
+FROM 'C:\Users\Fintan Spruce\Desktop\Coding\SQL\OList\CSVs\product_category_name_translation.csv'
+WITH (
+  FORMAT = 'CSV',
+  FIRSTROW = 2,
+  CODEPAGE = '65001',
+  FIELDTERMINATOR = ',',
+  ROWTERMINATOR = '0x0a'
+);
+
+INSERT INTO [Olist].[Catalog].[Translations]
+(
+  [ProductCategoryName]
+  ,[ProductCategoryNameEnglish]
+)
+SELECT
+  [product_category_name]
+  ,[product_category_name_english]
+FROM [Olist].[Catalog].[Staging_Translations];
+
+DROP TABLE [Olist].[Catalog].[Staging_Translations];
+GO
+
+UPDATE [Olist].[Catalog].[Translations]
+SET [ProductCategoryNameEnglish]= REPLACE(REPLACE([ProductCategoryNameEnglish], CHAR(13), ''), CHAR(10), '');
+GO
+
+-- DROP TABLE [Olist].[Catalog].[Translations]
