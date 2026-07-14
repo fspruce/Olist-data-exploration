@@ -1,0 +1,9 @@
+USE Olist;
+GO
+
+IF NOT EXISTS (SELECT * FROM sys.schemas WHERE NAME = 'Sales')
+BEGIN
+  EXEC('CREATE SCHEMA Sales')
+END
+GO
+
